@@ -1,3 +1,6 @@
+def clean_diag(diag):
+	return [x for x in diag if not float('inf') in x[1]]
+
 def main():
 	import persistence
 	import matplotlib.pyplot as plt
@@ -11,19 +14,19 @@ def main():
 	st = gudhi.SimplexTree()
 	st.insert([0], 0.0)
 	st.insert([1], 1.0)
-	st.insert([2], 2.0)
-	st.insert([0, 1], 3.0)
+	st.insert([3], 1.5)
+	st.insert([0, 1], 2.0)
+	st.insert([0, 3], 2.5)
+	st.insert([1, 2], 3.0)
 	st.insert([0, 2], 4.0)
-	st.insert([1, 2], 5.0)
-	st.insert([3], 6.0)
-	st.insert([1, 3], 7.0)
-	st.insert([2, 3], 8.0)
-	st.insert([1, 2, 3], 9.0)
-	# 2 ) calculer son diagramme de persistence avec gudhi
-	diag = st.persistence()
-	gudhi.display_persistence_diagram(diag)
-	# 3 ) calculer son landscape avec persistence.py
-	landscape = persistence.persistence_landscape(diag)
+	st.insert([0, 1, 2], 5.0)
+	diag = st.persistence(persistence_dim_max=True)
+	gudhi.plot_persistence_diagram(diag)
+	plt.show()
+	diag2 = clean_diag(diag)
+	landscape = persistence.persistence_landscape(diag2)
+	persistence.plot_persistence_landscape(landscape)
+	plt.show()
 
 if __name__ == '__main__':
 	main()
