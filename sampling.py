@@ -24,8 +24,3 @@ def get_samples_from_density(X, mu, n):
 		return None 
 	probas /= np.linalg.norm(probas, ord=1)
 	return get_samples(X, probas, n)
-
-N = 10
-X = np.array([-1.0, 0.0, 0.5, 1.5])
-density = lambda x : float(0.0 <= x < 1)
-print(get_samples_from_density(X, density, 10))
