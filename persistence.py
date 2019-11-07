@@ -2,7 +2,30 @@
 # Fichier pour calculer la persistence + lanscape des samples
 
 from bisect_key import insort_left
+import numpy as np
 import matplotlib.pyplot as plt
+import sampling
+
+def subsampling_persistence_landscape(X, mu, n, *, method='alpha'):
+	"""
+	Subsamples X with probability measure mu and method
+	method is 'alpha' (for alpha complex), 'rips' for (vietoris rips) or 'cech' (for cech complex)
+	"""
+
+	# STEP 1 : sample
+
+	samples = []
+	# case 1 : mu is a probability density -> a function
+	if callable(mu):
+		samples = sampling.get_samples(X, mu, n)
+	# case 2 : mu is discrete proba vector
+	else if type(x) in [list, np.ndarray]:
+		samples = sampling.get_samples_from_density(X, mu, n)
+	else:
+		print('Invalid probability')
+		return None 
+	# step 2 : build complex from sample 
+	# step 3 : 
 
 def persistence_landscape(diag):
 	"""
