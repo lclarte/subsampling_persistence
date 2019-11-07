@@ -12,14 +12,14 @@ def main():
 
 	# definir la filtration : on a un triangle vide et un triangle plein qui partagent une arete
 	st = gudhi.SimplexTree()
-	st.insert([0], 0.0)
-	st.insert([1], 1.0)
-	st.insert([3], 1.5)
-	st.insert([0, 1], 2.0)
-	st.insert([0, 3], 2.5)
-	st.insert([1, 2], 3.0)
-	st.insert([0, 2], 4.0)
-	st.insert([0, 1, 2], 5.0)
+	n_pts = 5
+	time  = 0.0
+	for n in range(n_pts):
+		st.insert([n], time)
+		time += 1.0
+	for n in range(n_pts - 1, 0, -1):
+		st.insert([0, n], time)
+		time += 1.0
 	diag = st.persistence(persistence_dim_max=True)
 	gudhi.plot_persistence_diagram(diag)
 	plt.show()
