@@ -5,27 +5,43 @@ from bisect_key import insort_left
 import numpy as np
 import matplotlib.pyplot as plt
 import sampling
+import cechmate_binder as filtrations
+import gudhi    as gd
+import cechmate as cm
 
-def subsampling_persistence_landscape(X, mu, n, *, method='alpha'):
+def subsampling_persistence_landscape(X, mu, n, method, **kwargs):
 	"""
 	Subsamples X with probability measure mu and method
 	method is 'alpha' (for alpha complex), 'rips' for (vietoris rips) or 'cech' (for cech complex)
 	"""
 
 	# STEP 1 : sample
+	samples = sampling.get_samples(X, mu, n)
+	if samples is None:
+		print('samples are empty')
+		return None
+	
+	# STEP 2 : build complex from sample 	
+	r = filtrations.compute_filtration(samples, method, **kwargs)
+	if r == None:
+		print('no filtration computed ')
+		return None
 
-	samples = []
-	# case 1 : mu is a probability density -> a function
-	if callable(mu):
-		samples = sampling.get_samples(X, mu, n)
-	# case 2 : mu is discrete proba vector
-	else if type(x) in [list, np.ndarray]:
-		samples = sampling.get_samples_from_density(X, mu, n)
-	else:
-		print('Invalid probability')
-		return None 
-	# step 2 : build complex from sample 
-	# step 3 : 
+	# STEP 3 : compute persistence and landscape 
+	simplices, diagrams = filtrations.compute_persistence(samples, r)
+	diagrams = persistence_cechmate_to_gudhi(diagrams)
+	landscape = persistence_landscape(diagrams)
+	return landscape
+
+def persistence_cechmate_to_gudhi(diag):
+	"""
+	Convertit le diagramme de persistence du format de cechmate (k listes de listes ou k est la dimension)$
+	au format de gudhi (liste de tuples (k, (b, d)))
+	"""
+	retour = []
+	for k in range(len(diag)):
+		retour += [(k, (x[0], x[1])) for x in diag[k]]
+	return retour
 
 def persistence_landscape(diag):
 	"""
