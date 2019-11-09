@@ -1,7 +1,8 @@
 # persistence.py
 # Fichier pour calculer la persistence + lanscape des samples
 
-from bisect_key import insort_left
+from bisect_key import insort_left, bisect_left
+from   statistics import mean
 import numpy as np
 import matplotlib.pyplot as plt
 import sampling
@@ -98,6 +99,34 @@ def plot_persistence_landscape(landscape):
 		x = [min(max(s, min_x), max_x) for s in x]
 		plt.plot(x, y)
 
+def landscape_to_function(landscape):
+	"""
+	Prend en argument un landscape sous forme de liste et retourne une fonction f correspondant
+	au landscape 
+	"""
+	def function(y):
+		# index > 1 puisque l'indice 0 correspond a x = - infini
+		index = bisect_left(landscape, (y, 0.0), key=lambda x : x[0])
+		x0, y0, x1, y1 = landscape[index - 1][0], landscape[index - 1][1], landscape[index][0], landscape[index][1]
+		if x0 == -float('inf'):
+			return y0
+		elif x1 == float('inf'):
+			return y1
+		else:
+			return (y0 + (y1 - y0)*(y - x0)/(x1 - x0))
+	return function
 
-
-
+def average_persistence_landscape(landscapes):
+	"""
+	lanscapes : liste de lambda_k (pour un meme k) sous forme de couples (x, y)
+	"""
+	# etape 1 : pour tout les landscapes, on calcule leurs fonctions associees
+	functions = [landscape_to_function(l) for l in landscapes]
+	# etape 2 : on recupere toutes les abscisses de tous les landscapes
+	abscisses = []
+	for l in landscapes:
+		abscisses += [x[0] for x in l if abs(x[0]) != float('inf')]
+	abscisses.sort()
+	# etape 3 : pour chaque abscisse, 
+	ordonnees = [mean(f(x) for f in functions) for x in abscisses]
+	return list(zip(abscisses, ordonnees))
