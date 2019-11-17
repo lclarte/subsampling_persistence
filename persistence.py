@@ -10,6 +10,18 @@ import cechmate_binder as filtrations
 import gudhi    as gd
 import cechmate as cm
 
+def compute_persistence(samples, method, **kwargs):
+	r = filtrations.compute_filtration(samples, method, **kwargs)
+	if r == None:
+		print('no filtration computed ')
+		return None
+
+	# STEP 3 : compute persistence and landscape 
+	simplices, diagrams = filtrations.compute_persistence(samples, r)
+	diagrams = persistence_cechmate_to_gudhi(diagrams)
+	landscape = persistence_landscape(diagrams)
+	return landscape
+
 def subsampling_persistence_landscape(X, mu, n, method, **kwargs):
 	"""
 	Subsamples X with probability measure mu and method
@@ -22,17 +34,7 @@ def subsampling_persistence_landscape(X, mu, n, method, **kwargs):
 		print('samples are empty')
 		return None
 	
-	# STEP 2 : build complex from sample 	
-	r = filtrations.compute_filtration(samples, method, **kwargs)
-	if r == None:
-		print('no filtration computed ')
-		return None
-
-	# STEP 3 : compute persistence and landscape 
-	simplices, diagrams = filtrations.compute_persistence(samples, r)
-	diagrams = persistence_cechmate_to_gudhi(diagrams)
-	landscape = persistence_landscape(diagrams)
-	return landscape
+	return compute_persistence(samples, method, **kwargs)
 
 def persistence_cechmate_to_gudhi(diag):
 	"""
@@ -88,7 +90,7 @@ def persistence_landscape(diag):
 		k += 1
 	return L
 
-def plot_persistence_landscape(landscape):
+def plot_persistence_landscape(landscape, *, style=None):
 	plt.title('Persistence landscape')
 	for k in range(len(landscape)):		
 		current = landscape[k]
@@ -97,16 +99,20 @@ def plot_persistence_landscape(landscape):
 		x, y = [c[0] for c in current], [c[1] for c in current]
 		min_x, max_x = min(s for s in x if s > -float('inf')), max(s for s in x if s < float('inf'))
 		x = [min(max(s, min_x), max_x) for s in x]
-		plt.plot(x, y)
+		if style is None:
+			plt.plot(x, y)
+		else:
+			plt.plot(x, y, style)
 
-def landscape_to_function(landscape):
+def landscape_to_function(landscape0):
 	"""
 	Prend en argument un landscape sous forme de liste et retourne une fonction f correspondant
 	au landscape 
 	"""
+	landscape = [(float(x), float(y)) for (x, y) in landscape0]
 	def function(y):
 		# index > 1 puisque l'indice 0 correspond a x = - infini
-		index = bisect_left(landscape, (y, 0.0), key=lambda x : x[0])
+		index = bisect_left(landscape, (y, float('inf')))
 		x0, y0, x1, y1 = landscape[index - 1][0], landscape[index - 1][1], landscape[index][0], landscape[index][1]
 		if x0 == -float('inf'):
 			return y0
